@@ -1,0 +1,129 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>مدى | MADA</title>
+<style>
+:root{--green:#244f3b;--cream:#f7f4eb;--gold:#c5a76a;--ink:#202b25}
+*{box-sizing:border-box}
+body{margin:0;background:var(--cream);color:var(--ink);font-family:Arial,Tahoma,sans-serif}
+header{background:var(--green);color:white;padding:22px 5%;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{font-size:27px;font-weight:bold;letter-spacing:1px}
+.logo small{display:block;font-size:12px;color:#e3d2a5;letter-spacing:3px;margin-top:5px}
+nav{display:flex;gap:8px;flex-wrap:wrap}
+button{border:0;border-radius:10px;padding:11px 16px;cursor:pointer;font-size:15px}
+nav button{background:transparent;color:white}
+nav button.active,nav button:hover{background:#ffffff20}
+main{max-width:1000px;margin:30px auto;padding:0 16px}
+.hero{background:#e9e5d8;border-radius:20px;padding:25px;margin-bottom:25px}
+h1{font-size:clamp(25px,5vw,38px);margin:0 0 12px}
+p{line-height:1.8}
+.primary{background:var(--green);color:white}
+.secondary{background:#e9e3d5;color:var(--green)}
+input,textarea,select{width:100%;padding:13px;border:1px solid #d6d0c2;border-radius:10px;background:white;font:inherit;margin:7px 0 14px}
+textarea{min-height:250px;resize:vertical;line-height:1.9}
+label{font-weight:bold}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.card{background:white;border:1px solid #e6e0d3;border-radius:15px;padding:18px}
+.card h3{margin-top:0}
+.muted{color:#6c756e;font-size:14px}
+.hidden{display:none!important}
+footer{text-align:center;padding:25px;color:#687168;font-size:13px}
+#notice{padding:10px;color:var(--green)}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">مدى <small>M A D A</small></div>
+  <nav>
+    <button class="active" data-page="library">مكتبتي</button>
+    <button data-page="write">الكتابة</button>
+    <button data-page="finished">الكتب المكتملة</button>
+  </nav>
+</header>
+<main>
+  <section class="hero">
+    <p>مساحتك للكلمات والأفكار</p>
+    <h1>كل كتاب يبدأ بفكرة.</h1>
+    <p>اكتب أفكارك، حوّلها إلى فصول، واحتفظ بكتبك في مكتبتك الخاصة.</p>
+    <button class="primary" id="newBook">＋ أنشئ كتابًا جديدًا</button>
+  </section>
+
+  <section id="library">
+    <h2>مكتبتي</h2>
+    <p class="muted">كتبك المحفوظة ستظهر هنا.</p>
+    <div id="bookList" class="grid"></div>
+    <p id="empty">لا توجد كتب بعد. ابدأ بكتابة كتابك الأول!</p>
+  </section>
+
+  <section id="write" class="hidden">
+    <h2 id="editorHeading">كتاب جديد</h2>
+    <label for="bookTitle">عنوان الكتاب</label>
+    <input id="bookTitle" placeholder="اكتب عنوان كتابك">
+    <label for="bookType">نوع الكتاب</label>
+    <select id="bookType">
+      <option>رواية واقعية</option><option>تطوير الذات</option>
+      <option>خواطر</option><option>تعليمي</option><option>أخرى</option>
+    </select>
+    <label for="bookContent">محتوى الكتاب</label>
+    <textarea id="bookContent" placeholder="ابدأ الكتابة هنا..."></textarea>
+    <div class="toolbar">
+      <button class="primary" id="saveBook">حفظ الكتاب</button>
+      <button class="secondary" id="downloadBook">تصدير TXT</button>
+      <button class="secondary" id="backLibrary">العودة للمكتبة</button>
+    </div>
+    <p class="muted">الحفظ حاليًا على هذا الجهاز والمتصفح فقط.</p>
+  </section>
+
+  <section id="finished" class="hidden">
+    <h2>الكتب المكتملة</h2>
+    <p>ضع علامة مكتمل على الكتاب بعد إنهائه.</p>
+    <div id="finishedList" class="grid"></div>
+  </section>
+  <p id="notice" role="status"></p>
+</main>
+<footer>مدى | MADA — مساحة تنمو فيها أفكارك</footer>
+<script>
+const $=id=>document.getElementById(id);
+let books=[];
+let currentId=null;
+try{books=JSON.parse(localStorage.getItem('madaBooks')||'[]')}catch(e){books=[]}
+function persist(){localStorage.setItem('madaBooks',JSON.stringify(books))}
+function showPage(page){
+ ['library','write','finished'].forEach(p=>$(p).classList.toggle('hidden',p!==page));
+ document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
+ if(page!=='write')renderBooks();
+}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>showPage(b.dataset.page));
+$('newBook').onclick=()=>{currentId=null;$('editorHeading').textContent='كتاب جديد';$('bookTitle').value='';$('bookType').selectedIndex=0;$('bookContent').value='';showPage('write')};
+$('backLibrary').onclick=()=>showPage('library');
+$('saveBook').onclick=()=>{
+ const title=$('bookTitle').value.trim();
+ if(!title){$('notice').textContent='اكتب عنوان الكتاب أولًا.';return}
+ const item={id:currentId||Date.now(),title,type:$('bookType').value,content:$('bookContent').value,finished:false,updated:new Date().toLocaleDateString('ar-EG')};
+ const i=books.findIndex(b=>b.id===item.id);
+ if(i>=0){item.finished=books[i].finished;books[i]=item}else books.unshift(item);
+ currentId=item.id;persist();$('notice').textContent='تم حفظ الكتاب على هذا الجهاز.';renderBooks();
+};
+function renderBooks(){
+ const card=b=>`<article class="card"><h3>${escapeHTML(b.title)}</h3><p class="muted">${escapeHTML(b.type)} · ${escapeHTML(b.updated||'')}</p><p>${escapeHTML((b.content||'').slice(0,100))}</p><div class="toolbar"><button class="secondary" onclick="editBook(${b.id})">فتح</button><button class="secondary" onclick="toggleFinished(${b.id})">${b.finished?'إلغاء الاكتمال':'مكتمل ✓'}</button><button class="secondary" onclick="deleteBook(${b.id})">حذف</button></div></article>`;
+ $('bookList').innerHTML=books.filter(b=>!b.finished).map(card).join('');
+ $('finishedList').innerHTML=books.filter(b=>b.finished).map(card).join('');
+ $('empty').classList.toggle('hidden',books.some(b=>!b.finished));
+}
+function escapeHTML(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function editBook(id){const b=books.find(x=>x.id===id);if(!b)return;currentId=b.id;$('editorHeading').textContent='تعديل الكتاب';$('bookTitle').value=b.title;$('bookType').value=b.type;$('bookContent').value=b.content;showPage('write')}
+function toggleFinished(id){const b=books.find(x=>x.id===id);if(b){b.finished=!b.finished;persist();renderBooks()}}
+function deleteBook(id){if(confirm('هل تريد حذف هذا الكتاب؟')){books=books.filter(b=>b.id!==id);persist();renderBooks()}}
+$('downloadBook').onclick=()=>{
+ const title=$('bookTitle').value.trim()||'كتاب مدى';
+ const blob=new Blob([title+'\n\n'+$('bookContent').value],{type:'text/plain;charset=utf-8'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=title+'.txt';a.click();URL.revokeObjectURL(a.href);
+};
+renderBooks();
+</script>
+</body>
+</html>
